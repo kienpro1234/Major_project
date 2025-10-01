@@ -27,9 +27,14 @@ model User {
   skills        String[]  // Array of skills
   assessments   Assessment[]
 
-  //Sửa ở đây để 1 user có thể có nhiều resume
+  
   resume        Resume[]
   coverLetter   CoverLetter[]
+  savedJobs     SavedJob[]
+
+
+  phone         String?   
+  address       String?   
 }
 
 model Assessment {
@@ -72,10 +77,22 @@ model ResumeAnalysis {
   resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   jobDescription  String   @db.Text
+
+  formattedJobDescription String? @db.Text // Lưu JD đã được định dạng HTML
   matchScore      Int
   missingKeywords String[]
   summary         String   @db.Text
   suggestions     String[]
+
+  inlineFeedback  Json?    // Lưu nhận xét trực quan dưới dạng JSON
+
+
+//Những trường này phục vụ cho việc lưu trữ chi tiết kết quả phân tích cv
+  jobTitle        String?  // Tiêu đề công việc
+  companyName     String?  // Tên công ty
+  jobSource       String?  // Nguồn (topcv.vn, linkedin.com, etc.)
+  jobUrl          String?  // URL để xem chi tiết job
+  sourceType      String?  // Nguồn gốc (JSearch, Google Search)
 
   createdAt       DateTime @default(now())
 
@@ -91,6 +108,11 @@ model CoverLetter {
   companyName     String    // Name of the company applying to
   jobTitle        String    // Position applying for
   status          String    @default("draft") // draft, completed
+
+  jobUrl          String?   // URL để xem chi tiết job
+  jobSource       String?   // Nguồn (topcv.vn, etc.)
+  sourceType      String?   // Nguồn gốc (JSearch, Google Search)
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -124,4 +146,23 @@ model IndustryInsight {
   nextUpdate    DateTime  // Scheduled update time
 
   @@index([industry])
+}
+
+model SavedJob {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title           String
+  companyName     String
+  location        String?
+  description     String    @db.Text
+  url             String    @unique
+  source          String?   // Nguồn gốc công việc (VD: "LinkedIn", "TopCV")
+  sourceType      String? 
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
 }
